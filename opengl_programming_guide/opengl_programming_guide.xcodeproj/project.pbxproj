@@ -8,6 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		CCF3F79B2ACFE729005C0BE6 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CCF3F79A2ACFE729005C0BE6 /* main.cpp */; };
+		CCF3F7A32ACFF44A005C0BE6 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CCF3F7A22ACFF44A005C0BE6 /* OpenGL.framework */; };
+		CCF3F7A52ACFF462005C0BE6 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CCF3F7A42ACFF462005C0BE6 /* CoreFoundation.framework */; };
+		CCF3F7A72ACFF61C005C0BE6 /* libGLEW.2.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CCF3F7A62ACFF61C005C0BE6 /* libGLEW.2.2.0.dylib */; };
+		CCF3F7A92ACFF64D005C0BE6 /* libglfw.3.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CCF3F7A82ACFF64D005C0BE6 /* libglfw.3.3.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +29,10 @@
 /* Begin PBXFileReference section */
 		CCF3F7972ACFE729005C0BE6 /* opengl_programming_guide */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = opengl_programming_guide; sourceTree = BUILT_PRODUCTS_DIR; };
 		CCF3F79A2ACFE729005C0BE6 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		CCF3F7A22ACFF44A005C0BE6 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
+		CCF3F7A42ACFF462005C0BE6 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
+		CCF3F7A62ACFF61C005C0BE6 /* libGLEW.2.2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libGLEW.2.2.0.dylib; path = ../../../../usr/local/Cellar/glew/2.2.0_1/lib/libGLEW.2.2.0.dylib; sourceTree = "<group>"; };
+		CCF3F7A82ACFF64D005C0BE6 /* libglfw.3.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libglfw.3.3.dylib; path = ../../../../usr/local/Cellar/glfw/3.3.4/lib/libglfw.3.3.dylib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +40,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CCF3F7A92ACFF64D005C0BE6 /* libglfw.3.3.dylib in Frameworks */,
+				CCF3F7A72ACFF61C005C0BE6 /* libGLEW.2.2.0.dylib in Frameworks */,
+				CCF3F7A52ACFF462005C0BE6 /* CoreFoundation.framework in Frameworks */,
+				CCF3F7A32ACFF44A005C0BE6 /* OpenGL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -43,6 +55,7 @@
 			children = (
 				CCF3F7992ACFE729005C0BE6 /* opengl_programming_guide */,
 				CCF3F7982ACFE729005C0BE6 /* Products */,
+				CCF3F7A12ACFF44A005C0BE6 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -60,6 +73,17 @@
 				CCF3F79A2ACFE729005C0BE6 /* main.cpp */,
 			);
 			path = opengl_programming_guide;
+			sourceTree = "<group>";
+		};
+		CCF3F7A12ACFF44A005C0BE6 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				CCF3F7A82ACFF64D005C0BE6 /* libglfw.3.3.dylib */,
+				CCF3F7A62ACFF61C005C0BE6 /* libGLEW.2.2.0.dylib */,
+				CCF3F7A42ACFF462005C0BE6 /* CoreFoundation.framework */,
+				CCF3F7A22ACFF44A005C0BE6 /* OpenGL.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -243,6 +267,12 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 5J6B8CYSQ9;
 				ENABLE_HARDENED_RUNTIME = YES;
+				HEADER_SEARCH_PATHS = /usr/local/include;
+				LIBRARY_SEARCH_PATHS = (
+					/usr/local/include/macosx,
+					/usr/local/Cellar/glew/2.2.0_1/lib,
+					/usr/local/Cellar/glfw/3.3.4/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -253,6 +283,12 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 5J6B8CYSQ9;
 				ENABLE_HARDENED_RUNTIME = YES;
+				HEADER_SEARCH_PATHS = /usr/local/include;
+				LIBRARY_SEARCH_PATHS = (
+					/usr/local/include/macosx,
+					/usr/local/Cellar/glew/2.2.0_1/lib,
+					/usr/local/Cellar/glfw/3.3.4/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
