@@ -1,0 +1,12 @@
+#version 330 core
+out vec4 color;												
+in vec4 vertexColor;	
+in vec2 texCoord;
+
+uniform sampler2D outTexture;
+uniform sampler2D outFace;
+uniform vec4 outColor;	
+uniform float value;
+void main() {													
+     color =mix( texture(outTexture,texCoord) , texture(outFace,texCoord),value);
+}									
