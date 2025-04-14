@@ -1,5 +1,9 @@
 #pragma once
 #include <string>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 class Shader
 {
 public:
@@ -10,6 +14,8 @@ public:
 		const char* fragmentSource;
 		unsigned int ID;//shader program ID£»
 		void use();
+		void setUniform3f(const char* paramNameString,glm::vec3 param);
+		void setUniform1f(const char* paramNameString, float param);
 private:
 		void checkCompileErrors(unsigned int ID, std::string type);
 };
