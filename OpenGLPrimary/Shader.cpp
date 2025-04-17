@@ -46,7 +46,6 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
 	}catch (const std::exception& ex)
 	{
 		printf(ex.what());
-
 	}
 }
 

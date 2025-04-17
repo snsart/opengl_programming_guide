@@ -1,7 +1,7 @@
 #include <iostream>
 
 #define GLEW_STATIC
-#include <GL/glew.h>
+#include <GL/glew.h>//opengl 跨平台接口
 #include <GLFW/glfw3.h>//窗口管理类
 #include "Shader.h"
 #define STB_IMAGE_IMPLEMENTATION
@@ -11,6 +11,28 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "Camera.h"
 #include "Material.h"
+#include "DirectionLight.h"
+#include "PointLight.h"
+#include "SpotLight.h"
+#include "Mesh.h"
+#include "Model.h"
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void processInput(GLFWwindow* window);
+
+// settings
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
+float lastX = 800 / 2.0f;
+float lastY = 600 / 2.0f;
+bool firstMouse = true;
+bool mousePress = false;
+
+// timing
+float deltaTime = 0.0f;	// time between current frame and last frame
+float lastFrame = 0.0f;
 
 #pragma  region model data
 float vertices[] = {
@@ -73,14 +95,6 @@ glm::vec3 cubePositions[] = {
 
 #pragma endregion
 
-#pragma region input declare
-void processInput(GLFWwindow* window) {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, true);
-	}
-}
-#pragma endregion
-
 unsigned int loadImageToGPU(const char* filename, GLint internalFormat, GLenum format, unsigned int textureSlot ) {
 	unsigned int texture;
 	glGenTextures(1, &texture);
@@ -102,8 +116,10 @@ unsigned int loadImageToGPU(const char* filename, GLint internalFormat, GLenum f
 	return texture;
 }
 
-int main() {
+Camera* camera = new Camera();
 
+int main(int argc,char* argv[]) {
+	std::string exePath = argv[0];
 	#pragma region  open a window
 	glfwInit();
 	//设置glfw版本号为3.3
@@ -130,40 +146,50 @@ int main() {
 		return -1;
 	}
 	glViewport(0, 0, 800, 600);
+
+
 #pragma endregion
-	
+
+	#pragma region input callback
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
+#pragma endregion
+
 	#pragma region init shader program
 	Shader* myShader = new Shader("vertexSource.vert", "fragmentSource.frag");
-	myShader->use();
+	Shader* singleColorShader = new Shader("scaleVertexSource.vert", "singleColor.frag");
 	#pragma endregion
 	
 	#pragma region init and load model to VBO,VAO
-	unsigned int VBO;
-	glGenBuffers(1, &VBO);
-
-	unsigned int VAO;
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
-
-	//将cpu中的数据缓存到VBO中
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
+	//Mesh Cube(vertices);
+	Model backpack(exePath.substr(0, exePath.find_last_of('\\')) + "\\model\\backpack\\backpack.obj");
 	
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6*sizeof(float)));
+	//unsigned int VBO;
+	//glGenBuffers(1, &VBO);
 
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	glEnableVertexAttribArray(2);
+	//unsigned int VAO;
+	//glGenVertexArrays(1, &VAO);
+	//glBindVertexArray(VAO);
 
+	////将cpu中的数据缓存到VBO中
+	//glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6*sizeof(float)));
+
+	//glEnableVertexAttribArray(0);
+	//glEnableVertexAttribArray(1);
+	//glEnableVertexAttribArray(2);
+	
 	#pragma endregion
 
 	#pragma region create material
 
 	Material* myMaterial = new Material(
-		glm::vec3(0.3f, 0.4f, 0.2f), 
+		glm::vec3(0.5f, 0.5f, 0.5f), 
 		loadImageToGPU("container2.png", GL_RGBA, GL_RGBA, 0), 
 		loadImageToGPU("container2_specular.png", GL_RGBA, GL_RGBA, 1),
 		32);
@@ -171,63 +197,111 @@ int main() {
 
 	#pragma region prepare MVP matrices
 	
-	Camera* camera = new Camera();
-
 	glm::mat4 model;
 	glm::mat4 view;
-	view = camera->getViewMatrix();
 	glm::mat4 projection;
 	projection = glm::perspective(glm::radians(45.0f), (float)800 / 600, 0.1f, 100.0f);
 
 	#pragma endregion
 	
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_STENCIL_TEST);
 
 	glUniform3f(glGetUniformLocation(myShader->ID, "viewPos"), camera->Position.x, camera->Position.y, camera->Position.z);
-	unsigned int emissionTex = loadImageToGPU("matrix.jpg", GL_RGB, GL_RGB, 2);
+	//unsigned int emissionTex = loadImageToGPU("matrix.jpg", GL_RGB, GL_RGB, 2);
 
+	DirectionLight* directionLight = new DirectionLight();
+	PointLight* pointLight = new PointLight(glm::vec3(0.0f,0.0f,0.0f),glm::vec3(1.0f,1.0f,1.0f));
+	SpotLight* spotLight = new SpotLight();
 
 	while (!glfwWindowShouldClose(window)) {
+
+		float currentFrame = static_cast<float>(glfwGetTime());
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
 		
 		processInput(window);
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		float xPos = glm::sin(glfwGetTime())*3.0f;
-		float zPos = glm::cos(glfwGetTime()) * 4.0f +2.0f;
-		glm::vec3 lightPos = glm::vec3(xPos, 0.0f, zPos);
-
-		glUniform3f(glGetUniformLocation(myShader->ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-		glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-
-		for (unsigned int i = 0; i < 10; i++)
+		glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT);
+		//glDepthMask(GL_FALSE);
+		//glDepthFunc(GL_GREATER);
+		
+		view = camera->getViewMatrix();
+		spotLight->Position = camera->Position;
+		spotLight->Direction = camera->Front;
+		for (unsigned int i = 0; i < 1; i++)
 		{
-			myShader->use();
 			glm::mat4 model;
 			model = glm::translate(model, cubePositions[i]);
 			model = glm::rotate(model, glm::radians(20.0f*i), glm::vec3(0.8f, 0.2f, 0.6f));
-			glUniformMatrix4fv(glGetUniformLocation(myShader->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
-			glUniformMatrix4fv(glGetUniformLocation(myShader->ID, "view"), 1, GL_FALSE, glm::value_ptr(view));
-			glUniformMatrix4fv(glGetUniformLocation(myShader->ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-			glBindVertexArray(VAO);
 			
-			glUniform3f(glGetUniformLocation(myShader->ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z);
-			myShader->setUniform3f("material.ambient", myMaterial->ambient);
+			//glBindVertexArray(VAO);
+			
+
+			/*myShader->setUniform3f("material.ambient", myMaterial->ambient);
 			myShader->setUniform1i("material.diffuse", 0);
 			myShader->setUniform1i("material.specular", 1);
 			myShader->setUniform1i("material.emission", 2);
-			myShader->setUniform1f("material.shininess", myMaterial->shininess);
+			myShader->setUniform1f("material.shininess", myMaterial->shininess);*/
 
-			glActiveTexture(GL_TEXTURE0);
+			/*glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, myMaterial->diffuse);
 			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, myMaterial->specular);
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, emissionTex);
+			glBindTexture(GL_TEXTURE_2D, myMaterial->specular);*/
 			
-			glDrawArrays(GL_TRIANGLES, 0, 36);//opengl 按逆时针绘制三角形
-		}
+			
 
+			
+
+			glEnable(GL_DEPTH_TEST);
+			glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+			//步骤一：将要画的物体所覆盖的片段的模板缓冲设置为1
+			glStencilFunc(GL_ALWAYS, 1, 0xFF);
+			glStencilMask(0xFF);
+			
+			myShader->use();
+
+			glUniformMatrix4fv(glGetUniformLocation(myShader->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
+			glUniformMatrix4fv(glGetUniformLocation(myShader->ID, "view"), 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(glGetUniformLocation(myShader->ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+			myShader->setUniform3f("directionLight.color", directionLight->LightColor);
+			myShader->setUniform3f("directionLight.direction", directionLight->Direction);
+
+			myShader->setUniform3f("pointLight.color", pointLight->LightColor);
+			myShader->setUniform3f("pointLight.position", pointLight->Position);
+			myShader->setUniform1f("pointLight.constant", 1.0f);
+			myShader->setUniform1f("pointLight.linear", 0.09f);
+			myShader->setUniform1f("pointLight.quadratic", 0.032f);
+
+			myShader->setUniform3f("spotLight.position", spotLight->Position);
+			myShader->setUniform3f("spotLight.color", spotLight->LightColor);
+			myShader->setUniform3f("spotLight.direction", spotLight->Direction);
+			myShader->setUniform1f("spotLight.cutOff", spotLight->CutOff);
+			myShader->setUniform1f("spotLight.outerCutOff", spotLight->OuterCutOff);
+			myShader->setUniform1f("spotLight.constant", 1.0f);
+			myShader->setUniform1f("spotLight.linear", 0.09f);
+			myShader->setUniform1f("spotLight.quadratic", 0.032f);
+			backpack.Draw(myShader); 
+
+
+			//步骤二：画边框：将物体放大一圈，画物体时不是1的片段会通过模板测试，从而画出一个单色边框（内部被步骤一设置为了1，因而会被剔除）
+			glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+			glStencilMask(0x00);
+			glDisable(GL_DEPTH_TEST);
+			singleColorShader->use();
+			glUniformMatrix4fv(glGetUniformLocation(singleColorShader->ID, "view"), 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(glGetUniformLocation(singleColorShader->ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+			//model = glm::scale(model, glm::vec3(1.2f));
+			glUniformMatrix4fv(glGetUniformLocation(singleColorShader->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
+			backpack.Draw(singleColorShader);
+			glStencilMask(0xFF);
+			glEnable(GL_DEPTH_TEST);
+	
+			//glDrawArrays(GL_TRIANGLES, 0, 36);//opengl 按逆时针绘制三角形
+		}
 		//获取鼠标事件和切换buffer
 		glfwPollEvents();
 		glfwSwapBuffers(window);
@@ -237,4 +311,58 @@ int main() {
 	glfwTerminate();
 	return 0;
 }
+
+#pragma region input declare
+void processInput(GLFWwindow* window) {
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+		glfwSetWindowShouldClose(window, true);
+	}
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		camera->processKeyboard(FORWARD, deltaTime);
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		camera->processKeyboard(BACKWARD, deltaTime);
+	}
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		camera->processKeyboard(LEFT, deltaTime);
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		camera->processKeyboard(RIGHT, deltaTime);
+	}
+	mousePress = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+}
+
+// glfw: whenever the window size changed (by OS or user resize) this callback function executes
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+	glViewport(0, 0, width, height);
+}
+
+//glfw: whenever the mouse moves, this callback is called
+void mouse_callback(GLFWwindow* window,double xposIn,double yposIn){
+	if (!mousePress) {
+		firstMouse = true; 
+		return;
+	}
+	float xpos = static_cast<float>(xposIn);
+	float ypos = static_cast<float>(yposIn);
+	if (firstMouse) {
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+	float xoffset = xpos - lastX;
+	float yoffset = ypos - lastY;
+	lastX = xpos;
+	lastY = ypos;
+	camera->processMouseMovement(xoffset, yoffset, true);
+}
+
+//glfw: whenever the mouse scroll wheel scrolls,this callback is called;
+void scroll_callback(GLFWwindow* window,double xoffset,double yoffset) {
+	float yoffsetf = static_cast<float>(yoffset);
+}
+
+#pragma endregion
+
+
 
