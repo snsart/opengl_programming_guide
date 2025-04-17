@@ -1,5 +1,6 @@
 # Visual Studio 生成文件和目录
 [Dd]ebug/
+**/[Dd]ebug/
 [Rr]elease/
 [Bb]in/
 [Oo]bj/
