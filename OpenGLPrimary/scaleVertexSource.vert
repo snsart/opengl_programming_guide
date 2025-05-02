@@ -4,12 +4,14 @@
  layout(location = 2) in vec2 atexCoord;
 
 out vec3 normal;
+out  vec2 texCoord;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
  void main(){
-	normal =  mat3(transpose(inverse(model)))*aNormal;
-	vec3 position = position+vec3(0.1*normalize(aNormal));
+	//normal =  mat3(transpose(inverse(model)))*aNormal;
+	//vec3 position = position+vec3(0.1*normalize(aNormal));
+	texCoord = atexCoord;
 	gl_Position = projection*view*model*vec4(position,1.0f); 
 }

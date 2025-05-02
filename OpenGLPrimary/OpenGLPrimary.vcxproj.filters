@@ -42,11 +42,15 @@
     <ClCompile Include="Model.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Skybox.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="review.txt" />
     <Text Include="vertexSource.vert" />
     <Text Include="fragmentSource.frag" />
+    <Text Include="frameBufferVertex.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h">
@@ -79,6 +83,9 @@
     <ClInclude Include="Model.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Skybox.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="OpenGLPrimary.rc">
@@ -104,10 +111,19 @@
     <Image Include="matrix.jpg">
       <Filter>资源文件</Filter>
     </Image>
+    <Image Include="grass.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="blending_transparent_window.png">
+      <Filter>资源文件</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="singleColor.frag" />
     <None Include="scaleVertexSource.vert" />
+    <None Include="frameBuffer.frag" />
+    <None Include="skyboxVert.vert" />
+    <None Include="skybox.frag" />
   </ItemGroup>
 </Project>

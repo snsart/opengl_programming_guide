@@ -1,4 +1,4 @@
-#version 330 core
+#version 400 core
 out vec4 color;	
 
 struct Material{
@@ -61,6 +61,8 @@ uniform vec3 lightColor;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
 
+uniform samplerCube skybox;
+
 void main() {
      vec3 ambient = texture(material.diffuse,texCoord).rgb*0.2;//环境光影响最小
 
@@ -111,7 +113,11 @@ void main() {
     vec3 spotResult = (spotDiffuse*intensity+spotSpecular*intensity);
 
     vec3 result = ambient+dirResult+pointResult;
-    color = vec4(result,1.0f);
+
+    vec3 r = reflect(-viewDir,norm);
+    vec3 r2 = refract(-viewDir,norm,1.00/1.52);
+    color = vec4(texture(skybox,r2).rgb,1.0);
+    //color = vec4(result,1.0f);
     //color = vec4(result+vec3(gl_FragCoord.z),1.0);
     //color = vec4(1.0f,1.0f,1.0f,1.0f);
 }									
