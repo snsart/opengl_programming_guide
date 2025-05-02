@@ -49,6 +49,66 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
 	}
 }
 
+Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath)
+{
+	std::ifstream vertexFile;
+	std::ifstream fragmentFile;
+	std::ifstream geometryFile;
+	vertexFile.open(vertexPath);
+	fragmentFile.open(fragmentPath);
+	geometryFile.open(geometryPath);
+	std::stringstream vertexStream;
+	std::stringstream fragmentStream;
+	std::stringstream geometryStream;
+
+	vertexFile.exceptions(std::ifstream::failbit || std::ifstream::badbit);
+	fragmentFile.exceptions(std::ifstream::failbit || std::ifstream::badbit);
+	geometryFile.exceptions(std::ifstream::failbit || std::ifstream::badbit);
+
+	try
+	{
+		if (!vertexFile.is_open() || !fragmentFile.is_open()||!geometryFile.is_open()) {
+			throw std::exception("open file error");
+		}
+		vertexStream << vertexFile.rdbuf();
+		fragmentStream << fragmentFile.rdbuf();
+		geometryStream << geometryFile.rdbuf();
+		vertexString = vertexStream.str();
+		fragmentString = fragmentStream.str();
+		geometryString = geometryStream.str();
+		vertexSource = vertexString.c_str();
+		fragmentSource = fragmentString.c_str();
+		geometrySource = geometryString.c_str();
+
+		unsigned int vertex, fragment,geometry;
+		vertex = glCreateShader(GL_VERTEX_SHADER);
+		glShaderSource(vertex, 1, &vertexSource, NULL);
+		glCompileShader(vertex);
+		checkCompileErrors(vertex, "VERTEX");
+
+		fragment = glCreateShader(GL_FRAGMENT_SHADER);
+		glShaderSource(fragment, 1, &fragmentSource, NULL);
+		glCompileShader(fragment);
+		checkCompileErrors(fragment, "FRAGMENT");
+
+		geometry = glCreateShader(GL_GEOMETRY_SHADER);
+		glShaderSource(geometry, 1, &geometrySource, NULL);
+		glCompileShader(geometry);
+		checkCompileErrors(geometry, "GEOMETRY");
+
+		ID = glCreateProgram();
+		glAttachShader(ID, vertex);
+		glAttachShader(ID, fragment);
+		glAttachShader(ID, geometry);
+		glLinkProgram(ID);
+		checkCompileErrors(ID, "PROGRAM");
+	}
+	catch (const std::exception& ex)
+	{
+		printf(ex.what());
+	}
+}
+
 void Shader::use() {
 	glUseProgram(ID);
 }

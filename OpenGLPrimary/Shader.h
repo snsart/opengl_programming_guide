@@ -9,10 +9,13 @@ class Shader
 {
 public:
 		Shader(const char* vertexPath, const char* fragmentPath);
+		Shader(const char* vertexPath, const char* fragmentPath,const char* geometryPath);
 		std::string vertexString;
 		std::string fragmentString;
+		std::string geometryString;
 		const char* vertexSource;
 		const char* fragmentSource;
+		const char* geometrySource;
 		unsigned int ID;//shader program ID£»
 		enum Slot
 		{
